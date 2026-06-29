@@ -36,7 +36,7 @@ QtEasyTier 是一个基于 Qt 框架开发的异地组网工具，用于创建�
 
 - Windows 10/11
 - 今后计划支持 Linux
-- Mac 目前暂无支持计划（主要是作者没有Macbook），但欢迎大佬参与贡献
+- macOS（Apple Silicon / arm64，实验性支持，含 TUN 组网与一键联机）
 
 ## 快速上手
 
@@ -72,6 +72,33 @@ cmake  ..
 cmake --build . --config Release
 cmake --install . --config Release
 ```
+
+### macOS 安装（免 Apple 公证）
+
+> macOS 构建为 Apple Silicon（arm64），未做 Apple 付费公证。新版 macOS（15 Sequoia / 26 Tahoe）对“下载来的”未公证程序拦截很严：直接双击 `.app` 会被 Gatekeeper 挡下（且系统已取消“右键打开”绕过），更关键的是——即使去掉隔离标记，需要管理员权限的 TUN 辅助程序 `QtEasyTierHelper` 仍会被系统拒绝运行（错误 `-423`），导致组网功能无法使用。
+
+经实测，免公证的可靠安装方式是：用 `ditto` 把应用重建到**用户级** `~/Applications`（切断“下载来源”追踪），清除隔离属性，再在本机重新 ad-hoc 签名。**注意必须装到 `~/Applications` 而非系统级 `/Applications`** —— 实测装到 `/Applications` 会触发更严格的安全策略，使 helper 被拒、TUN 起不来；装到 `~/Applications` 则 GUI 与 helper 均正常，应用也照常出现在“启动台”。
+
+下面任选其一安装：
+
+**方式一 · 推荐 · 终端一键安装**
+
+打开“终端”（启动台搜索 Terminal），粘贴执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dwgx/qt-easy-tier/helper-on-latest/package/mac/web_install.sh | bash
+```
+
+脚本会自动下载 DMG、正确安装到 `~/Applications` 并打开。
+
+**方式二 · 使用 DMG 内的安装脚本**
+
+1. 从 Release 下载 DMG 并打开；
+2. 打开“终端”，把 DMG 窗口里的 `install_qet.command` **拖进终端**回车执行
+   （直接双击同样会被 Gatekeeper 拦，所以要在终端里运行）；
+3. 按提示完成，程序装到 `~/Applications`。
+
+首次使用 TUN 组网时会弹出一次管理员密码授权，属正常现象。
 
 ### 简单开始使用
 
@@ -129,3 +156,4 @@ Breeze 是 KDE Plasma 桌面环境的默认主题，本程序移植了其适用�
 </p>
 
 [点击前往赞助详情页面](https://qtet.070219.xyz/other/donate/)
+

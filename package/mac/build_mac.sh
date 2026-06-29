@@ -195,14 +195,57 @@ DMG_NAME="${APP_NAME}_v${VERSION}_macos_${ARCH}${DMG_SUFFIX}"
 DMG_PATH="$PROJECT_DIR/Install/${DMG_NAME}.dmg"
 
 echo "创建 DMG 镜像..."
+
+# 组装 DMG 内容到 staging 目录:app + 安装脚本 + Applications 软链 + 说明
+SCRIPT_DIR_BM="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DMG_STAGE="$(mktemp -d /tmp/qet-dmg.XXXXXX)"
+cp -R "$APP_PATH" "$DMG_STAGE/"
+ln -s /Applications "$DMG_STAGE/Applications"
+if [ -f "$SCRIPT_DIR_BM/install_qet.command" ]; then
+    cp "$SCRIPT_DIR_BM/install_qet.command" "$DMG_STAGE/install_qet.command"
+    chmod +x "$DMG_STAGE/install_qet.command"
+fi
+cat > "$DMG_STAGE/请先阅读.txt" <<'READMETXT'
+QtEasyTier macOS 安装说明(免 Apple 公证)
+============================================
+
+本应用未做 Apple 付费公证。新版 macOS(15/26)对“下载来的”未公证
+程序拦得很严:直接把 QtEasyTier.app 拖进 /Applications 后双击,会被
+Gatekeeper 拦截;而且需要管理员权限的 TUN 组网辅助程序也会被系统
+拒绝运行,导致组网功能用不了。
+
+请按下面任一方式安装(二选一):
+
+【方式一 · 推荐 · 终端一键安装】
+  打开“终端”(在“启动台”里搜索 Terminal),粘贴下面这行并回车:
+
+  curl -fsSL https://raw.githubusercontent.com/dwgx/qt-easy-tier/helper-on-latest/package/mac/web_install.sh | bash
+
+  它会自动下载、正确安装到 ~/Applications 并打开。
+
+【方式二 · 用本 DMG 内的安装脚本】
+  1. 打开“终端”(启动台里搜索 Terminal);
+  2. 把本窗口里的 install_qet.command 拖进终端窗口,回车执行
+     (直接双击会被 Gatekeeper 拦,所以要在终端里跑);
+  3. 按提示完成,程序会装到 ~/Applications。
+
+为什么不能直接拖进 /Applications?
+  实测(macOS 26):安装到系统级 /Applications 会触发更严格的安全策略,
+  使需要管理员权限的辅助程序被拒(错误 -423),TUN 组网起不来。
+  安装到用户级 ~/Applications 则一切正常,应用照样出现在“启动台”。
+READMETXT
+
 hdiutil create \
     -volname "$APP_NAME" \
-    -srcfolder "$APP_PATH" \
+    -srcfolder "$DMG_STAGE" \
     -ov \
     -format UDZO \
     "$DMG_PATH"
+
+rm -rf "$DMG_STAGE"
 
 echo "=============================="
 echo "DMG 创建完成!"
 echo "输出: $DMG_PATH"
 echo "=============================="
+
