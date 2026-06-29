@@ -19,7 +19,7 @@ set -e
 
 REPO="dwgx/qt-easy-tier"
 TAG="${QET_TAG:-v2.1.2-macos-helper}"
-DMG_NAME="QtEasyTier_v2.1.2_macos_arm64_helper.dmg"
+DMG_NAME="QtEasyTier_v2.1.2_macos_arm64.dmg"
 DMG_URL="https://github.com/$REPO/releases/download/$TAG/$DMG_NAME"
 
 DEST_DIR="$HOME/Applications"
